@@ -15,25 +15,29 @@ window.addEventListener("load", function () {
     if (cryptoAPI) {
       document.body.style.backgroundColor = "black";
       document.body.style.color = "white";
-      const promiseGetRoot = window.showDirectoryPicker().then(getRootFile).catch(alert);
-      const promiseGetRoot = Promise.all(promiseGetRoot, getMasterKey).then(readRootFile).catch(alert);
-      
-      function getRootFile(entryParent) {
-        return entryParent.getFileHandle("root.encrypt", {create: false});
-      }
-      function readRootFile([ fileHandleRoot, bufferKey ]) {
-        const fileRoot = fileHandleRoot.getFile();
-        const blobRootFile = readEncryptFile(bufferKey, fileRoot.arrayBuffer());
-        const bufferRootFile = blobRootFile.arrayBuffer();
-        const arrayRootFile = new DataView(bufferRootFile);
-        mapFileKeys.clear();
-        let numFileIndex = 0;
-        const numFileLength = bufferRootFile.byteLength;
-        while (numFileIndex < numFileLength) {
-          
-          mapFileKeys.add();
+      const btnMount = document.createElement("button");
+      btnMount.innerHTML = "Mount Volume";
+      document.body.appendChild(btnMount);
+      btnMount.addEventListener(function (evt) {
+        const promiseGetRoot = window.showDirectoryPicker().then(getRootFile).catch(alert);
+        const promiseReadRoot = Promise.all(promiseGetRoot, getMasterKey).then(readRootFile).catch(alert);
+
+        function getRootFile(entryParent) {
+          return entryParent.getFileHandle("root.encrypt", {create: false});
         }
-      }
+        function readRootFile([ fileHandleRoot, bufferKey ]) {
+          const fileRoot = fileHandleRoot.getFile();
+          const blobRootFile = readEncryptFile(bufferKey, fileRoot.arrayBuffer());
+          const bufferRootFile = blobRootFile.arrayBuffer();
+          const arrayRootFile = new DataView(bufferRootFile);
+          mapFileKeys.clear();
+          let numFileIndex = 0;
+          const numFileLength = bufferRootFile.byteLength;
+          while (numFileIndex < numFileLength) {
+//            mapFileKeys.add();
+          }
+        }
+      });
     } else {
       let textMsg = document.createTextNode("Crypto API is not supported.");
       document.body.appendChild(textMsg);
