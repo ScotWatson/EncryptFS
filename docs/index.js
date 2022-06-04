@@ -106,7 +106,6 @@ function writeEncryptFile(bufferKey, bufferData) {
   const objEncrypt = encrypt_AES256_CBC(arrayKey, arrayContent);
   return new Blob([ arrayHeaderBlock, objEncrypt.iv, objEncrypt.ciphertext ]);
 }
-});
 
 // Encrypts the given plaintext with the given key using the given iv, if provided
 // Using AES-256 block cipher in CBC mode
