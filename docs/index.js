@@ -9,6 +9,7 @@ let cryptoAPI = ('crypto' in self);
 let width;
 let height;
 const mapFileKeys = new Map();
+let writableRoot;
 
 window.addEventListener("load", function () {
   if (filesystemAPI) {
@@ -23,7 +24,21 @@ window.addEventListener("load", function () {
         const promiseReadRoot = Promise.all(promiseGetRoot, getMasterKey).then(readRootFile).catch(alert);
 
         function getRootFile(entryParent) {
-          return entryParent.getFileHandle("root.encrypt", {create: false});
+          return entryParent.getFileHandle("root.encrypt", {create: false}).catch(handleError);
+          function handleError(error) {
+            function newRootFile(fileHandleRoot) {
+              writableRoot = fileHandleRoot.createWritable();
+              const contents = new ArrayBuffer(16);
+              contents[0] = 0x20;
+              contents[1] = 0x47;
+              contents[2] = 0x7D;
+              contents[3] = 0x46;
+              writableRoot.write(contents);
+            }
+            if (error.name === "NotFoundError") {
+              return entryParent.getFileHandle("root.encrypt", {create: true}).then(newRootFile).catch(alert);
+            }
+          }
         }
         function readRootFile([ fileHandleRoot, bufferKey ]) {
           const fileRoot = fileHandleRoot.getFile();
