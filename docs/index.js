@@ -18,7 +18,7 @@ window.addEventListener("load", function () {
       const btnMount = document.createElement("button");
       btnMount.innerHTML = "Mount Volume";
       document.body.appendChild(btnMount);
-      btnMount.addEventListener(function (evt) {
+      btnMount.addEventListener("click", function (evt) {
         const promiseGetRoot = window.showDirectoryPicker().then(getRootFile).catch(alert);
         const promiseReadRoot = Promise.all(promiseGetRoot, getMasterKey).then(readRootFile).catch(alert);
 
