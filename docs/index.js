@@ -95,7 +95,6 @@ window.addEventListener("load", function () {
         function getVolumeKey() {
           return promptForString("Enter the volume password:", "").then(hash_SHA256);
         }
-        }
         const promiseGetVolumeFolder = window.showDirectoryPicker().then(storeVolumeFolder, handleGetVolumeFolderError);
         const promiseGetVolumeKey = promiseGetVolumeFolder.then(getVolumeKey).catch(handleGetVolumeKeyError);
         const promiseGetRootFile = promiseGetVolumeKey.then(getRootFile).then(readRootFile, handleGetRootFileError);
