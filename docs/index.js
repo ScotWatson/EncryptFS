@@ -14,7 +14,7 @@ const mapFileKeys = new Map();
 class EncryptedVolume {
   constructor(hdlFolder, bufferKey) {
     function getRootFile() {
-      return hdlVolumeFolder.getFileHandle("root.encrypt", {create: false});
+      return hdlFolder.getFileHandle("root.encrypt", {create: false});
     }
     function readRootFile(bufferKey) {
       const fileRoot = fileHandleRoot.getFile();
@@ -72,6 +72,7 @@ class EncryptedVolume {
             throw new Error("Unrecognized type");
         }
       }
+    }
   }
 }
 
