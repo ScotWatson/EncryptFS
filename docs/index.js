@@ -1,4 +1,4 @@
-import "VolumeRootFile.js";
+import * from "./VolumeRootFile.js";
 
 /*
 (c) 2022 Scot Watson  All Rights Reserved
