@@ -1,4 +1,6 @@
-import * from "./VolumeRootFile.js";
+let moduleVolumeRootFile = import("./VolumeRootFile.js");
+
+moduleVolumeRootFile.then(console.log, console.error);
 
 /*
 (c) 2022 Scot Watson  All Rights Reserved
