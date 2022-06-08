@@ -1,4 +1,4 @@
-class VolumeRootFile {
+export class VolumeRootFile {
   // Represents a volume root file
   // blobFile: (Blob, optional) 
   constructor(blobFile) {
