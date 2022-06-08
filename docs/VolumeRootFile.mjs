@@ -1,3 +1,5 @@
+throw new Error("Module can not load - Scot Watson");
+
 export class VolumeRootFile {
   // Represents a volume root file
   // blobFile: (Blob, optional) 
