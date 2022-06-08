@@ -15,6 +15,11 @@ moduleEncryptedVolume.then(function (module) {
   console.log(Object.getOwnPropertyNames(module));
 }, console.error);
 
+let moduleDataStream = import("./DataStream.mjs");
+
+moduleDataStream.then(function (module) {
+  console.log(Object.getOwnPropertyNames(module));
+}, console.error);
 
 let filesystemAPI = ('showOpenFilePicker' in window && 'showDirectoryPicker' in window);
 let cryptoAPI = ('crypto' in self);
