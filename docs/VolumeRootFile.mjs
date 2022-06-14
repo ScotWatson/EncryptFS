@@ -3,12 +3,21 @@
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+// Creates the on-disk representation of a record
+export function createRecord(numRecordType, objData) {
+  switch (numRecordType) {
+    case 0x0000:
+      break;
+    default:
+      break;
+  }
+}
+
 // Incrementally adds record 
 // handleRootFile: (FileSystemFileHandle)
 // bufferRootKey: (ArrayBuffer, length = 32)
-// bufferFileId: (ArrayBuffer, length = 4)
-// buferFileKey: (ArrayBuffer, length = 32)
-export function addRecordToRootFile(handleRootFile, bufferRootKey, bufferFileId, bufferFileKey) {
+// bufferRecord: (ArrayBuffer)
+export function addRecordToRootFile(handleRootFile, bufferRootKey, bufferRecord) {
   const bufferNewRecord = new ArrayBuffer();
   const promiseGetRootFile = handleRootFile.getFile();
   promiseGetRootFile.then(getFileSlices).then(decryptLastBlock);
@@ -27,7 +36,8 @@ export function addRecordToRootFile(handleRootFile, bufferRootKey, bufferFileId,
   function addData( bufferCurrentData ) {
     const bufferNewData = new ArrayBuffer();
     bufferNewData.set(bufferCurrentData);
-    bufferNewData.set(bufferNewRecord);
+    bufferNewData.set(bufferRecord, bufferCurrentData.byteLength);
+    return bufferNewData;
   }
   function encryptLastBlocks( bufferLastBlocks ) {
     return decrypt_AES256_CBC(bufferLastBlock, bufferRootKey, bufferIv);
