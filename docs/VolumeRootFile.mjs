@@ -40,7 +40,7 @@ export function addRecordToRootFile(handleRootFile, bufferRootKey, bufferRecord)
     return bufferNewData;
   }
   function encryptLastBlocks( bufferLastBlocks ) {
-    return decrypt_AES256_CBC(bufferLastBlock, bufferRootKey, bufferIv);
+    return encrypt_AES256_CBC(bufferLastBlock, bufferRootKey, bufferIv);
   }
   function writeLastBlocks() {
   }
