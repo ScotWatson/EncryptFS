@@ -18,35 +18,58 @@ export function createRecord(numRecordType, objData) {
 // bufferRootKey: (ArrayBuffer, length = 32)
 // bufferRecord: (ArrayBuffer)
 export function addRecordToRootFile(handleRootFile, bufferRootKey, bufferRecord) {
-  const bufferNewRecord = new ArrayBuffer();
-  const promiseGetRootFile = handleRootFile.getFile();
-  promiseGetRootFile.then(getFileSlices).then(decryptLastBlock);
-  function getFileSlices(file) {
-    const len = file.length;
-    if (len < 0x20) {
-      throw new Error("File too short");
-    }
-    const promiseIV = file.slice(len - 0x20, len - 0x10).arrayBuffer();
-    const promiseLastBlock = file.slice(len - 0x10, len).arrayBuffer();
-    return Promise.all( [ promiseIV, promiseLastBlock ] );
+}
+export function appendFile_AES256_CBC(handleFile, bufferKey, bufferDataToAppend) {
+  const promiseGetFile = handleFile.getFile();
+  const promiseGetStream = handleFile.createWritable();
+  promiseGetFile
+    .then(function (file) {
+      return append_AES256_CBC(file, bufferKey, bufferDataToAppend);
+    });
+  Promise.all( [ promiseEncryptSlices, promiseGetStream] )
+    .then(function ( [  ] ) {
+      return writeLastBlocks();
+    });
+  function writeLastBlocks(bufferCurrentData, streamWritable) {
+    streamWritable.seek();
+    streamWritable.write(bufferCurrentData);
   }
-  function decryptLastBlock( [ bufferIv, bufferLastBlock ] ) {
-    return decrypt_AES256_CBC(bufferLastBlock, bufferRootKey, bufferIv);
+}
+export function append_AES256_CBC(blob, bufferKey, bufferDataToAppend) {
+  const numLen = blob.length;
+  if (len < 0x20) {
+    return Promise.reject(new Error("File too short"));
+  }
+  const numIvStart = numLen - 0x20;
+  const numLastBlockStart = numLen - 0x10;
+  const promiseGetFileSlices = promiseGetFile.then(getFileSlices);
+  const promiseDecryptSlices = promiseGetFileSlices
+    .then(function ( [ bufferIv, bufferLastBlock ] ) {
+      return decrypt_AES256_CBC(bufferLastBlock, bufferKey, bufferIv);
+    });
+  const promiseAddData = promiseDecryptSlices.then(addData);
+  const promiseEncryptSlices = Promise.all( [ promiseAddData, promiseGetFileSlices ] )
+    .then(function ( [ bufferNewData, [ bufferIv, bufferLastBlock ] ] ) {
+      return encrypt_AES256_CBC(bufferLastBlocks, bufferKey, bufferIv);
+    });
+  const promiseWrapData = promiseEncryptSlices.then(function (bufferNewFileData) {
+    return {
+      pos: numLastBlockStart,
+      data: bufferNewFileData,
+    };
+  });
+  return promiseWrapData;
+  function getFileSlices(file) {
+    const promiseIV = file.slice(numIvStart, numIvStart + 0x10).arrayBuffer();
+    const promiseLastBlock = file.slice(numLastBlockStart, numLen).arrayBuffer();
+    return Promise.all( [ promiseIV, promiseLastBlock ] );
   }
   function addData( bufferCurrentData ) {
     const bufferNewData = new ArrayBuffer();
     bufferNewData.set(bufferCurrentData);
-    bufferNewData.set(bufferRecord, bufferCurrentData.byteLength);
+    bufferNewData.set(bufferDataToAppend, bufferCurrentData.byteLength);
     return bufferNewData;
   }
-  function encryptLastBlocks( bufferLastBlocks ) {
-    return encrypt_AES256_CBC(bufferLastBlock, bufferRootKey, bufferIv);
-  }
-  function writeLastBlocks() {
-  }
-  bufferRootKey;
-  bufferFileId;
-  bufferFileKey;
 }
 
 export class VolumeRootFile {
