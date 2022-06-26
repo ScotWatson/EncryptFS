@@ -6,36 +6,66 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // Creates the on-disk representation of a record
 export function createRecord(numRecordType, objData) {
   switch (numRecordType) {
-    case 0x0000:
-      break;
+    case 0x60BA:  // Add File / Change File Key
+      {
+        // 12 byte header
+        // 4 byte file ID
+        // 32 byte key
+        const bufferRecord = new ArrayBuffer(48);
+        const viewRecord = new DataView(bufferRecord);
+        writeHeader(viewRecord, 36);
+        viewRecord.setUint32(12, objData.numFileId, true);
+        viewRecord.set(16, objData.bufferKey);
+        return bufferRecord;
+      }
+    case 0xE4B7:  // Remove File
+      {
+        // 12 byte header
+        // 4 byte file ID
+        const bufferRecord = new ArrayBuffer(16);
+        const viewRecord = new DataView(bufferRecord);
+        writeHeader(viewRecord, 4);
+        viewRecord.setUint32(12, objData.numFileId, true);
+        return bufferRecord;
+      }
     default:
-      break;
+      throw new Error("");
+  }
+  function writeHeader(viewRecord, numRecordDataLength) {
+    viewRecord.setBigInt64(Date.now(), 0);
+    viewRecord.setUint16(numRecordType, 8);
+    viewRecord.setUint16(numRecordDataLength, 10);
   }
 }
 
-// Incrementally adds record 
+// Incrementally adds record to existing root.encrypt file
 // handleRootFile: (FileSystemFileHandle)
 // bufferRootKey: (ArrayBuffer, length = 32)
-// bufferRecord: (ArrayBuffer)
-export function addRecordToRootFile(handleRootFile, bufferRootKey, bufferRecord) {
+// numRecordType: (Number)
+// objData: (Object)
+export function addRecordToRootFile(handleRootFile, bufferRootKey, numRecordType, objData) {
+  return appendFile_AES256_CBC(createRecord(handleRootFile, bufferRootKey, numRecordType, objData));
 }
+
 export function appendFile_AES256_CBC(handleFile, bufferKey, bufferDataToAppend) {
   const promiseGetFile = handleFile.getFile();
   const promiseGetStream = handleFile.createWritable();
-  promiseGetFile
+  const promiseAppendHelper = promiseGetFile
     .then(function (file) {
-      return append_AES256_CBC(file, bufferKey, bufferDataToAppend);
+      return appendHelper_AES256_CBC(file, bufferKey, bufferDataToAppend);
     });
-  Promise.all( [ promiseEncryptSlices, promiseGetStream] )
-    .then(function ( [  ] ) {
-      return writeLastBlocks();
+  const promiseWriteBlocks = Promise.all( [ promiseAppendHelper, promiseGetStream] )
+    .then(function ( [ objAppendData, stream ] ) {
+      return writeLastBlocks(objAppendData, stream);
     });
-  function writeLastBlocks(bufferCurrentData, streamWritable) {
-    streamWritable.seek();
-    streamWritable.write(bufferCurrentData);
+  return promiseWriteBlocks;
+  function writeLastBlocks(bufferAppendData, streamWritable) {
+    streamWritable.seek(bufferAppendData.pos);
+    streamWritable.write(bufferAppendData.data);
   }
 }
-export function append_AES256_CBC(blob, bufferKey, bufferDataToAppend) {
+
+export function appendHelper_AES256_CBC(blob, bufferKey, bufferDataToAppend) {
   const numLen = blob.length;
   if (len < 0x20) {
     return Promise.reject(new Error("File too short"));
@@ -60,7 +90,7 @@ export function append_AES256_CBC(blob, bufferKey, bufferDataToAppend) {
   });
   return promiseWrapData;
   function getFileSlices(file) {
-    const promiseIV = file.slice(numIvStart, numIvStart + 0x10).arrayBuffer();
+    const promiseIV = file.slice(numIvStart, numLastBlockStart).arrayBuffer();
     const promiseLastBlock = file.slice(numLastBlockStart, numLen).arrayBuffer();
     return Promise.all( [ promiseIV, promiseLastBlock ] );
   }
