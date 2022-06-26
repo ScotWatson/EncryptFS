@@ -32,7 +32,8 @@ const mapFileKeys = new Map();
 window.addEventListener("load", function () {
   if (filesystemAPI) {
     if (cryptoAPI) {
-      document.body.append(document.createTextNode("02:28"));
+      document.body.append(document.createTextNode("03:24"));
+      document.body.append(document.createTextNode("hello"));
       document.body.style.backgroundColor = "black";
       document.body.style.color = "white";
       const btnMount = document.createElement("button");
